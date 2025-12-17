@@ -222,14 +222,6 @@ class AttendanceBleSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, E
             payload
         }
 
-//
-//        // Limit to 20 bytes for safety
-//        val limitedPayload = if (payload.size > 20) {
-//            Log.w(TAG, "Enrollment number too long, truncating to 20 bytes")
-//            payload.copyOf(20)
-//        } else {
-//            payload
-//        }
 
         val settings = AdvertiseSettings.Builder()
             .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
@@ -468,14 +460,12 @@ class AttendanceBleSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, E
     private fun evaluateAttendanceAndEmit() {
 
         val validPeers = detectedPeers.values.filter { peer ->
-            peer.rssi >= rssiThreshold &&
-                    peer.courseId == courseId &&
-                    peer.courseName == courseName
+            peer.rssi >= rssiThreshold && peer.courseId == courseId
         }
         detectedPeers.values.forEach { peer ->
             Log.d(
                 TAG,
-                "Peer ${peer.enrollmentNumber} | peerCourse=${peer.courseId} | expectedCourse=$courseId"
+                "Peer ${peer.enrollmentNumber} | peerCourse=${peer.courseId} | expectedCourse=$courseId | Match: ${peer.courseId == courseId}"
             )
         }
 
