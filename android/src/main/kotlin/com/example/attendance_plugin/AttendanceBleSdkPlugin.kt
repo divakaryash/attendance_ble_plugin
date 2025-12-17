@@ -117,6 +117,12 @@ class AttendanceBleSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, E
             "startScan" -> {
                 myEnrollmentNumber = call.argument("enrollmentNumber") ?: ""
                 myUserName = call.argument("userName") ?: ""
+                call.argument<Int>("minPeerCount")?.let { minPeerCount = it }
+                call.argument<Int>("rssiThreshold")?.let { rssiThreshold = it }
+                call.argument<Int>("scanDuration")?.let { scanDuration = it.toLong() }
+
+                Log.d(TAG, "📋 Config - minPeerCount: $minPeerCount, rssiThreshold: $rssiThreshold, scanDuration: $scanDuration")
+
                 startBleScan()
                 result.success(true)
             }
@@ -425,8 +431,10 @@ class AttendanceBleSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, E
             it.rssi >= rssiThreshold
         }
 
-        val status =
-            if (validPeers.size >= minPeerCount) "PRESENT" else "ABSENT"
+        // ✅ Debug log
+        Log.d(TAG, "🔍 Evaluation - Peers found: ${detectedPeers.size}, Valid peers: ${validPeers.size}, minPeerCount: $minPeerCount, rssiThreshold: $rssiThreshold")
+
+        val status = if (validPeers.size >= minPeerCount) "PRESENT" else "ABSENT"
 
         val result = mapOf(
             "enrollmentNumber" to myEnrollmentNumber,
@@ -447,7 +455,7 @@ class AttendanceBleSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, E
 
         attendanceResultSink?.success(result)
 
-        Log.d(TAG, "📋 Attendance Result Emitted: $status (${validPeers.size} peers)")
+        Log.d(TAG, "📋 Attendance Result: $status (${validPeers.size}/${minPeerCount} peers, RSSI threshold: $rssiThreshold)")
     }
 
 
