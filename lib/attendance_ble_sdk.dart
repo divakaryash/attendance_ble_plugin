@@ -49,25 +49,30 @@ class AttendanceBleSdk {
     required String userName,
     required String courseId,
     required String courseName,
-    int minPeerCount = 1,      // ✅ Default: 1 peer = PRESENT
-    int rssiThreshold = -80,   // ✅ Default: -80 dBm
-    int scanDuration = 10000,  // ✅ Default: 10 seconds
+    int minPeerCount = 1,
+    int rssiThreshold = -80,
+    int scanDuration = 10000,
   }) async {
-    await startAdvertising(
-      enrollmentNumber: enrollmentNumber,
-      userName: userName,
-    );
-    await startScan(
-      enrollmentNumber: enrollmentNumber,
-      userName: userName,
-      minPeerCount: minPeerCount,      // ✅ Pass config
-      rssiThreshold: rssiThreshold,    // ✅ Pass config
-      scanDuration: scanDuration,      // ✅ Pass config
-    );
+    // ✅ 1. Set course info FIRST!
     await _method.invokeMethod("setCourseInfo", {
       "courseId": courseId,
       "courseName": courseName,
     });
+
+    // ✅ 2. Then start advertising (now includes course info)
+    await startAdvertising(
+      enrollmentNumber: enrollmentNumber,
+      userName: userName,
+    );
+
+    // ✅ 3. Finally start scanning
+    await startScan(
+      enrollmentNumber: enrollmentNumber,
+      userName: userName,
+      minPeerCount: minPeerCount,
+      rssiThreshold: rssiThreshold,
+      scanDuration: scanDuration,
+    );
   }
 
   /// Stop attendance (scan + advertising)
