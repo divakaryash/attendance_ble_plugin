@@ -52,6 +52,10 @@ class AttendanceBleSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, E
     private var bluetoothLeAdvertiser: BluetoothLeAdvertiser? = null
     private var isAdvertising = false
 
+    private var courseId: String = ""
+    private var courseName: String = ""
+
+
     // Attendance state
     private var myEnrollmentNumber: String = ""
     private var myUserName: String = ""
@@ -140,6 +144,14 @@ class AttendanceBleSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, E
                 stopBleAdvertising()
                 result.success(true)
             }
+            "setCourseInfo" -> {
+                courseId = call.argument<String>("courseId") ?: ""
+                courseName = call.argument<String>("courseName") ?: ""
+
+                Log.d(TAG, "📚 Course set: $courseId - $courseName")
+                result.success(true)
+            }
+
             else -> result.notImplemented()
         }
     }
@@ -437,6 +449,8 @@ class AttendanceBleSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, E
         val status = if (validPeers.size >= minPeerCount) "PRESENT" else "ABSENT"
 
         val result = mapOf(
+            "courseId" to courseId,
+            "courseName" to courseName,
             "enrollmentNumber" to myEnrollmentNumber,
             "userName" to myUserName,
             "date" to java.time.LocalDate.now().toString(),

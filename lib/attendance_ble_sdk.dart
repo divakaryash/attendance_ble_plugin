@@ -1,84 +1,3 @@
-// import 'dart:async';
-// import 'package:flutter/services.dart';
-//
-// class AttendanceBleSdk {
-//   static const MethodChannel _method =
-//   MethodChannel('attendance_ble_sdk');
-//
-//   static const EventChannel _event =
-//   EventChannel('attendance_ble_sdk/scan');
-//
-//   /// Start BLE scan
-//   /// [enrollmentNumber] - current user enrollment
-//   /// [userName] - current user name
-//   static Future<void> startScan({
-//     required String enrollmentNumber,
-//     required String userName,
-//   }) async {
-//     await _method.invokeMethod(
-//       'startScan',
-//       {
-//         'enrollmentNumber': enrollmentNumber,
-//         'userName': userName,
-//       },
-//     );
-//   }
-//
-//   /// Stop BLE scan
-//   static Future<void> stopScan() async {
-//     await _method.invokeMethod('stopScan');
-//   }
-//   static Future<void> startAdvertising({
-//     required String enrollmentNumber,
-//     required String userName,
-//   }) async {
-//     await _method.invokeMethod(
-//       'startAdvertising',
-//       {
-//         'enrollmentNumber': enrollmentNumber,
-//         'userName': userName,
-//       },
-//     );
-//   }
-//
-//   static Future<void> stopAdvertising() async {
-//     await _method.invokeMethod('stopAdvertising');
-//   }
-//   static Future<void> startAttendance({
-//     required String enrollmentNumber,
-//     required String userName,
-//   }) async {
-//     await startAdvertising(
-//       enrollmentNumber: enrollmentNumber,
-//       userName: userName,
-//     );
-//     await startScan(
-//       enrollmentNumber: enrollmentNumber,
-//       userName: userName,
-//     );
-//   }
-//
-//   static Future<void> stopAttendance() async {
-//     await stopScan();
-//     await stopAdvertising();
-//   }
-//
-//
-//
-//   /// Listen to scan results
-//   /// Each event is a Map sent from Android
-//   static Stream<Map<String, dynamic>> scanStream() {
-//     return _event.receiveBroadcastStream().map(
-//           (event) => Map<String, dynamic>.from(event as Map),
-//     );
-//   }
-//   static Stream<Map<String, dynamic>> attendanceResultStream() {
-//     return const EventChannel('attendance_ble_sdk/attendanceResult')
-//         .receiveBroadcastStream()
-//         .map((e) => Map<String, dynamic>.from(e));
-//   }
-//
-// }
 import 'dart:async';
 import 'package:flutter/services.dart';
 
@@ -128,6 +47,8 @@ class AttendanceBleSdk {
   static Future<void> startAttendance({
     required String enrollmentNumber,
     required String userName,
+    required String courseId,
+    required String courseName,
     int minPeerCount = 1,      // ✅ Default: 1 peer = PRESENT
     int rssiThreshold = -80,   // ✅ Default: -80 dBm
     int scanDuration = 10000,  // ✅ Default: 10 seconds
@@ -143,6 +64,10 @@ class AttendanceBleSdk {
       rssiThreshold: rssiThreshold,    // ✅ Pass config
       scanDuration: scanDuration,      // ✅ Pass config
     );
+    await _method.invokeMethod("setCourseInfo", {
+      "courseId": courseId,
+      "courseName": courseName,
+    });
   }
 
   /// Stop attendance (scan + advertising)
