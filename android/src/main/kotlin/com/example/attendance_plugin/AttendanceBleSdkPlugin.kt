@@ -42,6 +42,10 @@ class AttendanceBleSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, E
     private var rssiThreshold = -80
     private var scanDuration = 10_000L
 
+    private var currentCourseId: String? = null
+    private var currentCourseName: String? = null
+
+
 
     // BLE
     private var bluetoothAdapter: BluetoothAdapter? = null
@@ -67,6 +71,8 @@ class AttendanceBleSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, E
         val enrollmentNumber: String,
         val userName: String,
         val macAddress: String,
+        val courseId: String,
+        val courseName: String,
         var rssi: Int,
         var lastSeen: Long = System.currentTimeMillis()
     )
@@ -205,7 +211,17 @@ class AttendanceBleSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, E
         myUserName = userName
 
         // ⚠️ IMPORTANT: Only advertise enrollment number to stay under 31 byte limit
-        val payload = enrollmentNumber.toByteArray(StandardCharsets.UTF_8)
+        // enrollment|courseId|courseName
+        val payloadString = "$enrollmentNumber|$courseId|$courseName"
+        val payload = payloadString.toByteArray(StandardCharsets.UTF_8)
+
+// BLE limit safety (<= 20 bytes preferred)
+        val limitedPayload = if (payload.size > 20) {
+            payload.copyOf(20)
+        } else {
+            payload
+        }
+
 
         // Limit to 20 bytes for safety
         val limitedPayload = if (payload.size > 20) {
@@ -386,7 +402,17 @@ class AttendanceBleSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, E
             }
 
             // Since we only advertise enrollment number now
-            val enrollment = raw
+            // Expected format: enrollment|courseId|courseName
+            val parts = raw.split("|")
+
+            if (parts.size < 3) {
+                Log.w(TAG, "Invalid peer payload: $raw")
+                return
+            }
+
+            val enrollment = parts[0]
+            val peerCourseId = parts[1]
+            val peerCourseName = parts[2]
             val name = "User_$enrollment"
 
             // Skip if it's my own device
@@ -416,6 +442,8 @@ class AttendanceBleSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, E
                     enrollmentNumber = enrollment,
                     userName = name,
                     macAddress = mac,
+                    courseId = peerCourseId,
+                    courseName = peerCourseName,
                     rssi = rssi,
                     lastSeen = currentTime
                 )
@@ -439,8 +467,16 @@ class AttendanceBleSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, E
     }
     private fun evaluateAttendanceAndEmit() {
 
-        val validPeers = detectedPeers.values.filter {
-            it.rssi >= rssiThreshold
+        val validPeers = detectedPeers.values.filter { peer ->
+            peer.rssi >= rssiThreshold &&
+                    peer.courseId == courseId &&
+                    peer.courseName == courseName
+        }
+        detectedPeers.values.forEach { peer ->
+            Log.d(
+                TAG,
+                "Peer ${peer.enrollmentNumber} | peerCourse=${peer.courseId} | expectedCourse=$courseId"
+            )
         }
 
         // ✅ Debug log
