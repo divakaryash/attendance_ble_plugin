@@ -38,7 +38,7 @@ class AttendanceBleSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, E
     private var attendanceResultSink: EventChannel.EventSink? = null
 
     private lateinit var context: Context
-    private var minPeerCount = 2
+    private var minPeerCount = 1
     private var rssiThreshold = -80
     private var scanDuration = 10_000L
 
