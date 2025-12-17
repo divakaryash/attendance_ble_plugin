@@ -222,14 +222,14 @@ class AttendanceBleSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, E
             payload
         }
 
-
-        // Limit to 20 bytes for safety
-        val limitedPayload = if (payload.size > 20) {
-            Log.w(TAG, "Enrollment number too long, truncating to 20 bytes")
-            payload.copyOf(20)
-        } else {
-            payload
-        }
+//
+//        // Limit to 20 bytes for safety
+//        val limitedPayload = if (payload.size > 20) {
+//            Log.w(TAG, "Enrollment number too long, truncating to 20 bytes")
+//            payload.copyOf(20)
+//        } else {
+//            payload
+//        }
 
         val settings = AdvertiseSettings.Builder()
             .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
